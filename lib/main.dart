@@ -15,7 +15,7 @@ void main() {
 class HomeListViewScreen extends StatelessWidget {
   HomeListViewScreen({super.key});
 
-  final people = PeopleService().getPeople().toList();
+  final people = PeopleService().getPeople(results: 100).toList();
 
   @override
   Widget build(BuildContext context) {
@@ -31,8 +31,18 @@ class HomeListViewScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      body: ListView(
-        children: people.map((e) => _buildListTile(person: e)).toList(),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.list), label: "List"),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.favorite_outlined), label: "Favorite")
+        ],
+      ),
+      body: ListView.builder(
+        itemCount: people.length,
+        itemBuilder: (context, index) {
+          return _buildListTile(person: people[index]);
+        },
       ),
     );
   }
