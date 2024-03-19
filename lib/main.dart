@@ -1,6 +1,12 @@
 import 'package:address_24/models/person.dart';
 import 'package:address_24/services/people_service.dart';
+import 'package:address_24/widgets/like_button.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+
+import 'widgets/contact_list_item.dart';
+import 'widgets/contact_list_view.dart';
+import 'widgets/contact_view_details.dart';
 
 void main() {
   runApp(
@@ -20,26 +26,40 @@ class HomeListViewScreen extends StatefulWidget {
 }
 
 class _HomeListViewScreenState extends State<HomeListViewScreen> {
-  final people = PeopleService().getPeople(results: 100).toList();
+  final people = PeopleService()
+      .getPeople(results: 100)
+      .where((e) => e.id != null)
+      .toList();
 
+  final List<Person> _favorite = [];
   int _currentIndex = 1;
 
   @override
   Widget build(BuildContext context) {
-    ListTile _buildListTile({required Person person}) {
-      return ListTile(
-        leading: CircleAvatar(
-          backgroundImage: NetworkImage(person.picture!.thumbnail!),
-        ),
-        title: Text(person.firstName!),
-        subtitle: Text(person.cell!),
-        trailing: const Icon(Icons.favorite_border),
-      );
-    }
+    // Widget _buildListTile({required Person person}) {
+    //   return ContactListItem(
+    //     person: person,
+    //     trailing: LikeButton(
+    //       favorite: _favorite.contains(person),
+    //       onPressed: () {
+    //         setState(
+    //           () {
+    //             if (_favorite.contains(person)) {
+    //               _favorite.remove(person);
+    //             } else {
+    //               _favorite.add(person);
+    //             }
+    //           },
+    //         );
+    //       },
+    //     ),
+    //   );
+    // }
 
     return Scaffold(
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
+        selectedItemColor: Colors.green,
         onTap: (index) => setState(() {
           _currentIndex = index;
         }),
@@ -50,14 +70,53 @@ class _HomeListViewScreenState extends State<HomeListViewScreen> {
         ],
       ),
       body: _currentIndex == 0
-          ? ListView.builder(
-              itemCount: people.length,
-              itemBuilder: (context, index) {
-                return _buildListTile(person: people[index]);
+          ? ContactListView(
+              people: people,
+              onTileTapped: (person) {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) {
+                      return ContactViewDetails(person: person);
+                    },
+                  ),
+                );
               },
+              onPressed: (person) {
+                setState(() {
+                  if (_favorite.contains(person)) {
+                    _favorite.remove(person);
+                  } else {
+                    _favorite.add(person);
+                  }
+                });
+              },
+              isFavorite: ((person) {
+                return _favorite.contains(person);
+              }),
             )
-          : const Center(
-              child: Text("Hello World!"),
+          : ContactListView(
+              people: _favorite,
+              onTileTapped: (person) {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) {
+                      return ContactViewDetails(person: person);
+                    },
+                  ),
+                );
+              },
+              onPressed: (person) {
+                setState(() {
+                  if (_favorite.contains(person)) {
+                    _favorite.remove(person);
+                  } else {
+                    _favorite.add(person);
+                  }
+                });
+              },
+              isFavorite: ((person) {
+                return _favorite.contains(person);
+              }),
             ),
     );
   }
